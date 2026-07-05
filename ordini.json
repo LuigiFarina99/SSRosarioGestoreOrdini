@@ -1,0 +1,17 @@
+{
+  "inPreparazione": [
+    {
+      "id": 9,
+      "prodotti": "Cliente Anonimo - 1x Salsiccia [Insalata] - 1x Caciocavallo - 1x Acqua (Tot: €10.00)",
+      "panini": "1x Salsiccia [Insalata]",
+      "brace": "",
+      "caciocavallo": "1x Caciocavallo",
+      "bevande": "1x Acqua",
+      "dolci": "",
+      "totaleEuro": "10.00",
+      "data": "14:19",
+      "repartiPronti": []
+    }
+  ],
+  "pronti": []
+}

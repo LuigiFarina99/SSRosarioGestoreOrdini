@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Stato Ordini - Consegna</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #111; color: white; margin: 0; padding: 20px; padding-top: 80px; }
+        
+        /* BARRA INCASSO TOTALE SUPERIORE */
+        .barra-incasso-globale { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            background: #1a1a1a; 
+            color: #fff; 
+            padding: 15px 30px; 
+            box-sizing: border-box; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 24px; 
+            font-weight: bold; 
+            border-bottom: 4px solid #ff9800; 
+            z-index: 2000; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        h1 { text-align: center; color: #ff9800; margin-bottom: 30px; margin-top: 10px; }
+        .tabellone { display: flex; gap: 30px; height: 75vh; }
+        .colonna { flex: 1; background: #222; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
+        .colonna h2 { text-align: center; margin-top: 0; padding-bottom: 15px; border-bottom: 3px solid #ff9800; }
+        #preparazione h2 { color: #ff9800; border-color: #ff9800; }
+        #pronti h2 { color: #4caf50; border-color: #4caf50; }
+        .lista { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex-grow: 1; }
+        .voce-ordine { background: #333; padding: 15px; border-radius: 8px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #ff9800; }
+        #listaPronti .voce-ordine { border-left-color: #4caf50; }
+        .animazione-lampo { animation: lampo 0.5s ease-in-out 3; }
+        .numero { font-size: 24px; font-weight: bold; }
+        .dettagli { font-size: 16px; color: #ccc; }
+        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        @keyframes lampo { 0%, 100% { background: #333; } 50% { background: #2e7d32; } }
+    </style>
+</head>
+<body>
+
+    <div class="barra-incasso-globale">
+        <span>INCASSO TOTALE DELLA SERATA:</span>
+        <span id="valoreIncassoTotale" style="color: #4caf50;">€ 0.00</span>
+    </div>
+
+    <h1>STATO ORDINAZIONI</h1>
+    <div class="tabellone">
+        <div class="colonna" id="preparazione"><h2>IN PREPARAZIONE ⏳</h2><div class="lista" id="listaPreparazione"></div></div>
+        <div class="colonna" id="pronti"><h2>Consegnati 🍔</h2><div class="lista" id="listaPronti"></div></div>
+    </div>
+
+    <script>
+        const socket = io();
+        let prodottiMemory = {};
+        
+        // Memoria interna per tenere traccia del costo di ogni singolo ordine numerato
+        let prezziOrdiniMemory = {};
+
+        // Funzione di supporto per estrarre il prezzo dal testo "Nome - Prodotti (Tot: €XX.XX)"
+        function estraiPrezzo(testoProdotti) {
+            try {
+                const parti = testoProdotti.split('(Tot: €');
+                if (parti.length > 1) {
+                    return parseFloat(parti[1].replace(')', '')) || 0;
+                }
+            } catch(e) {
+                console.log("Errore estrazione prezzo", e);
+            }
+            return 0;
+        }
+
+        // Calcola la somma di tutti gli ordini registrati nella pagina in questo momento
+        function aggiornaIncassoGrafico() {
+            let somma = 0;
+            for (let id in prezziOrdiniMemory) {
+                somma += prezziOrdiniMemory[id];
+            }
+            document.getElementById('valoreIncassoTotale').innerText = `€ ${somma.toFixed(2)}`;
+        }
+
+        function aggiungiInPrep(o) {
+            if (document.getElementById(`consegna-${o.id}`)) return;
+            prodottiMemory[o.id] = o.prodotti;
+            
+            // Memorizza il prezzo di questo ordine
+            prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti);
+
+            const div = document.createElement('div');
+            div.className = 'voce-ordine'; div.id = `consegna-${o.id}`;
+            div.innerHTML = `<div><span class="numero">#${o.id}</span> <span class="dettagli">(${o.prodotti.split(' - ')[0]})</span></div><div style="font-size:14px;color:#888;">${o.data}</div>`;
+            document.getElementById('listaPreparazione').appendChild(div);
+            
+            aggiornaIncassoGrafico();
+        }
+
+        function aggiungiPronto(id, prod, flash = false) {
+            if (document.getElementById(`pronto-${id}`)) return;
+            
+            // Memorizza il prezzo se non presente
+            if (prod) {
+                prezziOrdiniMemory[id] = estraiPrezzo(prod);
+            }
+
+            const div = document.createElement('div');
+            div.className = 'voce-ordine' + (flash ? ' animazione-lampo' : ''); div.id = `pronto-${id}`;
+            div.innerHTML = `<div><span class="numero" style="color:#4caf50">#${id}</span> <span class="dettagli">${prod || 'Ordine'}</span></div><button class="btn-consegnato" onclick="archivia(${id})">CONSEGNATO</button>`;
+            document.getElementById('listaPronti').appendChild(div);
+            
+            aggiornaIncassoGrafico();
+        }
+
+        socket.on('sincronizza-consegna', (dati) => {
+            document.getElementById('listaPreparazione').innerHTML = ''; 
+            document.getElementById('listaPronti').innerHTML = '';
+            prezziOrdiniMemory = {}; // Svuota la memoria temporanea prima del ricalcolo totale
+
+            dati.inPreparazione.forEach(o => aggiungiInPrep(o));
+            dati.pronti.forEach(o => { 
+                prodottiMemory[o.id] = o.prodotti; 
+                aggiungiPronto(o.id, o.prodotti, false); 
+            });
+            
+            aggiornaIncassoGlobaleDati(dati.inPreparazione, dati.pronti);
+        });
+
+        // Questa funzione serve a calcolare l'incasso anche dagli ordini storici caricati dal server
+        function aggiornaIncassoGlobaleDati(inPrep, pronti) {
+            let totale = 0;
+            inPrep.forEach(o => { totale += estraiPrezzo(o.prodotti); prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti); });
+            pronti.forEach(o => { totale += estraiPrezzo(o.prodotti); prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti); });
+            document.getElementById('valoreIncassoTotale').innerText = `€ ${totale.toFixed(2)}`;
+        }
+
+        socket.on('ordine-ricevuto', (o) => aggiungiInPrep(o));
+        
+        socket.on('ordine-completato', (id) => {
+            document.getElementById(`consegna-${id}`)?.remove();
+            aggiungiPronto(id, prodottiMemory[id] || "Ordine", true);
+            new Audio('https://actions.google.com/sounds/v1/notifications/ambient_notification.ogg').play().catch(()=>{});
+        });
+
+        async function archivia(id) {
+            document.getElementById(`pronto-${id}`)?.remove(); 
+            delete prodottiMemory[id];
+            // NOTA: NON eliminiamo il prezzo da prezziOrdiniMemory[id] così l'incasso totale 
+            // della serata resta memorizzato in alto anche se l'ordine viene consegnato e sparisce dallo schermo!
+            
+            await fetch('/ordine-archiviato', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitor Reparti Sagra</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #222; color: white; margin: 0; padding: 15px; }
+        .testata { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff9800; padding-bottom: 10px; }
+        select { font-size: 18px; padding: 8px; background: #333; color: white; border: 2px solid #ff9800; border-radius: 5px; font-weight: bold; }
+        .griglia-ordini { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+        .scheda-ordine { border: 2px solid #ff9800; background: #333; padding: 15px; border-radius: 10px; width: 260px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .scheda-ordine h3 { margin: 0 0 5px 0; color: #ff9800; border-bottom: 1px solid #555; padding-bottom: 5px; font-size: 22px; }
+        .prodotti { font-size: 18px; font-weight: bold; line-height: 1.4; min-height: 70px; color: #fff; margin-top: 10px; }
+        .ora { color: #aaa; font-size: 13px; margin-bottom: 10px; }
+        .btn-fatto { background: #4caf50; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="testata">
+        <h2 style="margin:0; font-size: 20px; color: #ff9800;">POSTAZIONE REPARTO</h2>
+        <select id="sceltaReparto" onchange="disegnaSchermata()">
+            <option value="panini">🍔 Reparto Panini (Salsiccia / Hamburger)</option>
+            <option value="brace">🍢 Reparto Arrosticini & Pannocchie</option>
+            <option value="caciocavallo">🧀 Reparto Caciocavallo</option>
+            <option value="bevande">🍺 Reparto Bevande</option>
+            <option value="dolci">🍩 Reparto Dolci</option>
+        </select>
+    </div>
+    <div class="griglia-ordini" id="spazioOrdini"></div>
+
+    <script>
+        const socket = io();
+        let ordiniLocali = [];
+
+        socket.on('carica-ordini-attivi', (ordini) => { ordiniLocali = ordini; disegnaSchermata(); });
+        socket.on('ordine-ricevuto', (ordine) => { 
+            ordiniLocali.push(ordine); disegnaSchermata(); 
+            new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg').play().catch(()=>{});
+        });
+        
+        // Questo evento ora rimuove l'ordine dal monitor del singolo dispositivo SOLO se quel reparto specifico ha completato il piatto
+        socket.on('rimuovi-ordine-schermo', (dati) => { 
+            // dati contiene { id: ..., reparto: ... }
+            const repCorrente = document.getElementById('sceltaReparto').value;
+            if (dati.reparto === repCorrente) {
+                ordiniLocali = ordiniLocali.filter(o => o.id !== parseInt(dati.id));
+                disegnaSchermata();
+            }
+        });
+
+        function disegnaSchermata() {
+            const spazio = document.getElementById('spazioOrdini');
+            spazio.innerHTML = '';
+            const rep = document.getElementById('sceltaReparto').value;
+
+            ordiniLocali.forEach(o => {
+                const stringaProdotti = o[rep];
+                // Mostra la scheda solo se ci sono prodotti per questo reparto E se non è già stato contrassegnato come pronto
+                if (stringaProdotti && stringaProdotti.trim() !== "" && (!o.repartiPronti || !o.repartiPronti.includes(rep))) {
+                    const div = document.createElement('div');
+                    div.className = 'scheda-ordine'; div.id = `ordine-${o.id}`;
+                    const testoEvidenziato = stringaProdotti.replace(/\[/g, '<span style="color:#ff5252">[').replace(/\]/g, ']</span>');
+                    div.innerHTML = `
+                        <div><h3>ORDINE #${o.id}</h3><div class="prodotti">${testoEvidenziato}</div></div>
+                        <div><div class="ora">Attesa: ${o.data}</div><button class="btn-fatto" onclick="segnalaPronto(${o.id})">PRONTO</button></div>
+                    `;
+                    spazio.appendChild(div);
+                }
+            });
+        }
+        
+        async function segnalaPronto(id) {
+            const rep = document.getElementById('sceltaReparto').value;
+            // Ottimizzazione visiva immediata sullo schermo locale
+            document.getElementById(`ordine-${id}`)?.remove();
+            
+            // Inviamo al server sia l'ID dell'ordine sia il REPARTO specifico che ha premuto il bottone
+            await fetch('/ordine-pronto', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ id: id, reparto: rep }) 
+            });
+        }
+    </script>
+</body>
+</html>

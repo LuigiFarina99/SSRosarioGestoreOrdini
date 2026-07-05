@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Cassa Sagra</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; color: #333; margin: 0; padding-bottom: 100px; }
+        .contenitore { max-width: 600px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto; }
+        h1 { margin-top: 0; color: #e65100; font-size: 26px; text-align: center; border-bottom: 2px solid #ff9800; padding-bottom: 10px; }
+        .sezione { margin-bottom: 18px; background: #fafafa; padding: 15px; border-radius: 5px; border: 1px solid #eee; }
+        .sezione h3 { margin: 0 0 10px 0; color: #d84315; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        input[type="text"] { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .riga { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 16px; }
+        .prezzo-tag { color: #666; font-size: 14px; font-weight: bold; margin-left: auto; width: 60px; text-align: right; }
+        .sotto-opzioni { margin-left: 25px; margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd; display: none; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+        .quantita { width: 60px; padding: 6px; font-size: 16px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        button.invia { display: block; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+        .ricevuta { display: none; margin-top: 20px; padding: 15px; background: #e8f5e9; border: 2px dashed #4caf50; border-radius: 5px; text-align: center; }
+        .barra-totale { position: fixed; bottom: 0; left: 0; width: 100%; background: #222; color: #fff; padding: 15px 30px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: bold; border-top: 4px solid #ff9800; z-index: 1000; }
+    </style>
+</head>
+<body>
+<div class="contenitore">
+    <h1>Cassa Sagra</h1>
+    <div class="sezione" style="background: transparent; border: none; padding: 0;">
+        <label for="nomeCliente">Nome Cliente / Tavolo:</label>
+        <input type="text" id="nomeCliente" placeholder="Es: Tavolo 4 o Nome" autocomplete="off">
+    </div>
+
+    <!-- REPARTO PANINI -->
+    <div class="sezione">
+        <h3>🍔 Reparto Panini</h3>
+        <div class="riga">
+            <input type="checkbox" id="checkSalsiccia" data-prezzo="5.00" onchange="aggiornaTutto('salsiccia')"> 
+            <input type="number" id="qtaSalsiccia" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Panino con Salsiccia</span>
+            <span class="prezzo-tag">€ 5.00</span>
+        </div>
+        <div id="condimenti-salsiccia" class="sotto-opzioni">
+            <label><input type="checkbox" class="cond-salsiccia" value="Insalata"> Insalata</label>
+            <label><input type="checkbox" class="cond-salsiccia" value="Melanzane"> Melanzane</label>
+            <label><input type="checkbox" class="cond-salsiccia" value="Maionese"> Maionese</label>
+            <label><input type="checkbox" class="cond-salsiccia" value="Ketchup"> Ketchup</label>
+        </div>
+
+        <div class="riga">
+            <input type="checkbox" id="checkHamburger" data-prezzo="5.00" onchange="aggiornaTutto('hamburger')"> 
+            <input type="number" id="qtaHamburger" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Panino con Hamburger</span>
+            <span class="prezzo-tag">€ 5.00</span>
+        </div>
+        <div id="condimenti-hamburger" class="sotto-opzioni">
+            <label><input type="checkbox" class="cond-hamburger" value="Insalata"> Insalata</label>
+            <label><input type="checkbox" class="cond-hamburger" value="Melanzane"> Melanzane</label>
+            <label><input type="checkbox" class="cond-hamburger" value="Maionese"> Maionese</label>
+            <label><input type="checkbox" class="cond-hamburger" value="Ketchup"> Ketchup</label>
+        </div>
+    </div>
+
+    <!-- POSTAZIONE BRACE -->
+    <div class="sezione">
+        <h3>🍢 Postazione Brace</h3>
+        <div class="riga">
+            <input type="checkbox" id="checkArrosticini" data-prezzo="3.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaArrosticini" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Arrosticini (Porzione)</span>
+            <span class="prezzo-tag">€ 3.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkPannocchie" data-prezzo="2.50" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaPannocchie" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Pannocchie</span>
+            <span class="prezzo-tag">€ 2.50</span>
+        </div>
+    </div>
+
+    <!-- POSTAZIONE CACIOCAVALLO -->
+    <div class="sezione">
+        <h3>🧀 Postazione Caciocavallo</h3>
+        <div class="riga">
+            <input type="checkbox" id="checkCaciocavallo" data-prezzo="4.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaCaciocavallo" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Caciocavallo Impiccato</span>
+            <span class="prezzo-tag">€ 4.00</span>
+        </div>
+    </div>
+
+    <!-- REPARTO BEVANDE -->
+    <div class="sezione">
+        <h3>🍺 Reparto Bevande / Bar</h3>
+        <div class="riga">
+            <input type="checkbox" id="checkAcqua" data-prezzo="1.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaAcqua" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Acqua</span>
+            <span class="prezzo-tag">€ 1.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkCoca" data-prezzo="2.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaCoca" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Coca Cola / Pepsi</span>
+            <span class="prezzo-tag">€ 2.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkBirra" data-prezzo="2.50" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaBirra" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Birra</span>
+            <span class="prezzo-tag">€ 2.50</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkVino" data-prezzo="5.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaVino" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Vino con Percoche</span>
+            <span class="prezzo-tag">€ 5.00</span>
+        </div>
+    </div>
+
+    <!-- REPARTO DOLCI -->
+    <div class="sezione">
+        <h3>🍩 Reparto Dolci</h3>
+        <div class="riga">
+            <input type="checkbox" id="checkZuccheroFilato" data-prezzo="2.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaZuccheroFilato" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Zucchero Filato</span>
+            <span class="prezzo-tag">€ 2.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkCrepes" data-prezzo="3.00" onchange="calcolaTotale()"> 
+            <input type="number" id="qtaCrepes" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Crepes</span>
+            <span class="prezzo-tag">€ 3.00</span>
+        </div>
+    </div>
+
+    <button class="invia" onclick="inviaComandaModerna()">INVIA ORDINE AI REPARTI</button>
+    <div id="schermataRicevuta" class="ricevuta">
+        <h2>ORDINE INVIATO!</h2>
+        <div id="numeroOrdineStampa" style="font-size: 45px; font-weight: bold; color: #1b5e20;">#1</div>
+    </div>
+</div>
+
+<div class="barra-totale">
+    <span>TOTALE DA INCASSARE:</span>
+    <span id="displayTotale" style="color: #ff9800;">€ 0.00</span>
+</div>
+
+<script>
+    let contatoreOrdine = parseInt(localStorage.getItem('ultimoNumeroOrdine')) || 1;
+    
+    function aggiornaTutto(tipo) {
+        const check = document.getElementById(tipo === 'salsiccia' ? 'checkSalsiccia' : 'checkHamburger');
+        document.getElementById('condimenti-' + tipo).style.display = check.checked ? 'block' : 'none';
+        calcolaTotale();
+    }
+    
+    function calcolaTotale() {
+        let totale = 0;
+        document.querySelectorAll('input[data-prezzo]').forEach(cb => {
+            if (cb.checked) {
+                const qta = parseInt(document.getElementById(cb.id.replace('check', 'qta')).value) || 1;
+                totale += parseFloat(cb.getAttribute('data-prezzo')) * qta;
+            }
+        });
+        document.getElementById('displayTotale').innerText = `€ ${totale.toFixed(2)}`;
+        return totale.toFixed(2);
+    }
+    
+    async function inviaComandaModerna() {
+        const nome = document.getElementById('nomeCliente').value.trim() || "Cliente Anonimo";
+        const idOrdineCorrente = contatoreOrdine;
+        const importoFinale = calcolaTotale();
+        
+        let paniniList = [], braceList = [], caciocavalloList = [], bevandeList = [], dolciList = [];
+
+        // Gestione Salsiccia con Condimenti corretti
+        if(document.getElementById('checkSalsiccia').checked) {
+            let cond = []; 
+            document.querySelectorAll('.cond-salsiccia:checked').forEach(c => cond.push(c.value));
+            let dettagliSalsiccia = `${document.getElementById('qtaSalsiccia').value}x Salsiccia`;
+            if(cond.length > 0) dettagliSalsiccia += ` [${cond.join(', ')}]`;
+            paniniList.push(dettagliSalsiccia);
+        }
+        
+        // Gestione Hamburger con Condimenti corretti
+        if(document.getElementById('checkHamburger').checked) {
+            let cond = []; 
+            document.querySelectorAll('.cond-hamburger:checked').forEach(c => cond.push(c.value));
+            let dettagliHamburger = `${document.getElementById('qtaHamburger').value}x Hamburger`;
+            if(cond.length > 0) dettagliHamburger += ` [${cond.join(', ')}]`;
+            paniniList.push(dettagliHamburger);
+        }
+        
+        if(document.getElementById('checkArrosticini').checked) braceList.push(`${document.getElementById('qtaArrosticini').value}x Arrosticini`);
+        if(document.getElementById('checkPannocchie').checked) braceList.push(`${document.getElementById('qtaPannocchie').value}x Pannocchie`);
+        
+        if(document.getElementById('checkCaciocavallo').checked) caciocavalloList.push(`${document.getElementById('qtaCaciocavallo').value}x Caciocavallo`);
+        
+        if(document.getElementById('checkAcqua').checked) bevandeList.push(`${document.getElementById('qtaAcqua').value}x Acqua`);
+        if(document.getElementById('checkCoca').checked) bevandeList.push(`${document.getElementById('qtaCoca').value}x Coca Cola`);
+        if(document.getElementById('checkBirra').checked) bevandeList.push(`${document.getElementById('qtaBirra').value}x Birra`);
+        if(document.getElementById('checkVino').checked) bevandeList.push(`${document.getElementById('qtaVino').value}x Vino c. Percoche`);
+        
+        if(document.getElementById('checkZuccheroFilato').checked) dolciList.push(`${document.getElementById('qtaZuccheroFilato').value}x Zucchero Filato`);
+        if(document.getElementById('checkCrepes').checked) dolciList.push(`${document.getElementById('qtaCrepes').value}x Crepes`);
+
+        let riepilogo = [paniniList.join(', '), braceList.join(', '), caciocavalloList.join(', '), bevandeList.join(', '), dolciList.join(', ')].filter(Boolean).join(' - ');
+
+        await fetch('/nuovo-ordine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                id: idOrdineCorrente, 
+                prodotti: `${nome} - ${riepilogo} (Tot: €${importoFinale})`, 
+                panini: paniniList.join('<br>'), 
+                brace: braceList.join('<br>'),
+                caciocavallo: caciocavalloList.join('<br>'),
+                bevande: bevandeList.join('<br>'), 
+                dolci: dolciList.join('<br>'),
+                totaleEuro: importoFinale, 
+                data: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
+            })
+        });
+
+        document.getElementById('numeroOrdineStampa').innerText = `#${idOrdineCorrente}`;
+        document.getElementById('schermataRicevuta').style.display = 'block';
+        
+        contatoreOrdine++; 
+        localStorage.setItem('ultimoNumeroOrdine', contatoreOrdine);
+        
+        // Reset rapido per la comanda successiva
+        document.getElementById('nomeCliente').value = '';
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.getElementById('condimenti-salsiccia').style.display = 'none';
+        document.getElementById('condimenti-hamburger').style.display = 'none';
+        document.querySelectorAll('input[type="number"]').forEach(num => num.value = 1);
+        calcolaTotale();
+    }
+</script>
+</body>
+</html>
