@@ -2,68 +2,36 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Stato Ordini - Consegna</title>
+    <title>Monitor Reparti Sagra</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         /* Blocco dello schermo prima del login */
         #bloccoLogin {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; color: white; z-index: 9999;
+            background: #222; color: white; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             font-family: sans-serif;
         }
-        .box-login { background: #222; padding: 30px; border-radius: 10px; border: 2px solid #ff9800; text-align: center; }
+        .box-login { background: #333; padding: 30px; border-radius: 10px; border: 2px solid #ff9800; text-align: center; }
         .box-login input { padding: 10px; font-size: 18px; border-radius: 5px; border: none; margin-bottom: 15px; width: 200px; text-align: center; background: #fff; color: #000; }
         .box-login button { padding: 10px 20px; font-size: 18px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
-        body { font-family: sans-serif; background: #111; color: white; margin: 0; padding: 20px; padding-top: 80px; }
-        
-        .barra-incasso-globale { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            background: #1a1a1a; 
-            color: #fff; 
-            padding: 15px 30px; 
-            box-sizing: border-box; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-size: 24px; 
-            font-weight: bold; 
-            border-bottom: 4px solid #ff9800; 
-            z-index: 2000; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        h1 { text-align: center; color: #ff9800; margin-bottom: 30px; margin-top: 10px; }
-        .tabellone { display: flex; gap: 30px; height: 75vh; }
-        .colonna { flex: 1; background: #222; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
-        .colonna h2 { text-align: center; margin-top: 0; padding-bottom: 15px; border-bottom: 3px solid #ff9800; }
-        #preparazione h2 { color: #ff9800; border-color: #ff9800; }
-        #pronti h2 { color: #4caf50; border-color: #4caf50; }
-        .lista { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex-grow: 1; }
-        .voce-ordine { background: #333; padding: 15px; border-radius: 8px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #ff9800; }
-        #listaPronti .voce-ordine { border-left-color: #4caf50; }
-        .animazione-lampo { animation: lampo 0.5s ease-in-out 3; }
-        .numero { font-size: 24px; font-weight: bold; }
-        .dettagli { font-size: 16px; color: #ccc; }
-        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        
-        .stato-reparti { display: flex; gap: 8px; margin-top: 5px; font-size: 13px; font-weight: bold; }
-        .tag-reparto { padding: 2px 6px; border-radius: 4px; background: #444; display: flex; align-items: center; gap: 4px; }
-        .tag-reparto.pronto { background: #1b5e20; color: #a5d6a7; }
-        .tag-reparto.attesa { background: #e65100; color: #ffcc80; }
-
-        @keyframes lampo { 0%, 100% { background: #333; } 50% { background: #2e7d32; } }
+        body { font-family: sans-serif; background: #222; color: white; margin: 0; padding: 15px; }
+        .testata { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff9800; padding-bottom: 10px; }
+        select { font-size: 18px; padding: 8px; background: #333; color: white; border: 2px solid #ff9800; border-radius: 5px; font-weight: bold; }
+        .griglia-ordini { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+        .scheda-ordine { border: 2px solid #ff9800; background: #333; padding: 15px; border-radius: 10px; width: 260px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .scheda-ordine h3 { margin: 0 0 5px 0; color: #ff9800; border-bottom: 1px solid #555; padding-bottom: 5px; font-size: 22px; }
+        .prodotti { font-size: 18px; font-weight: bold; line-height: 1.4; min-height: 70px; color: #fff; margin-top: 10px; }
+        .ora { color: #aaa; font-size: 13px; margin-bottom: 10px; }
+        .btn-fatto { background: #4caf50; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
 
 <div id="bloccoLogin">
     <div class="box-login">
-        <h2 style="color: #ff9800; margin-top: 0;">Accesso Schermo Consegna</h2>
+        <h2 style="color: #ff9800; margin-top: 0;">Accesso Monitor Reparti</h2>
         <p>Inserisci la password per operare:</p>
         <input type="password" id="inputPassword" placeholder="Password" onkeydown="if(event.key === 'Enter') controllaPassword()">
         <br>
@@ -71,27 +39,28 @@
     </div>
 </div>
 
-    <div class="barra-incasso-globale">
-        <span>INCASSO TOTALE DELLA SERATA:</span>
-        <span id="valoreIncassoTotale" style="color: #4caf50;">€ 0.00</span>
+    <div class="testata">
+        <h2 style="margin:0; font-size: 20px; color: #ff9800;">POSTAZIONE REPARTO</h2>
+        <select id="sceltaReparto" onchange="disegnaSchermata()">
+            <option value="panini">🍔 Reparto Panini (Salsiccia / Hamburger)</option>
+            <option value="brace">🍢 Reparto Arrosticini & Pannocchie</option>
+            <option value="caciocavallo">🧀 Reparto Caciocavallo</option>
+            <option value="bevande">🍺 Reparto Bevande</option>
+            <option value="dolci">🍩 Reparto Dolci</option>
+        </select>
     </div>
-
-    <h1>STATO ORDINAZIONI</h1>
-    <div class="tabellone">
-        <div class="colonna" id="preparazione"><h2>IN PREPARAZIONE ⏳</h2><div class="lista" id="listaPreparazione"></div></div>
-        <div class="colonna" id="pronti"><h2>Consegnati 🍔</h2><div class="lista" id="listaPronti"></div></div>
-    </div>
+    <div class="griglia-ordini" id="spazioOrdini"></div>
 
     <script>
         // --- GESTIONE ACCESSO PASSWORD ---
-        if (sessionStorage.getItem('consegnaAutenticata') === 'true') {
+        if (sessionStorage.getItem('repartiAutenticati') === 'true') {
             document.getElementById('bloccoLogin').style.display = 'none';
         }
 
         function controllaPassword() {
             const passwordInserita = document.getElementById('inputPassword').value;
             if (passwordInserita === 'Test90') {
-                sessionStorage.setItem('consegnaAutenticata', 'true');
+                sessionStorage.setItem('repartiAutenticati', 'true');
                 document.getElementById('bloccoLogin').style.display = 'none';
             } else {
                 alert('Password errata! Accesso negato.');
@@ -101,140 +70,38 @@
         // ---------------------------------
 
         const socket = io();
-        let prodottiMemory = {};
-        let ordiniInPrepLocali = []; 
-        let prezziOrdiniMemory = {};
+        let ordiniLocali = [];
 
-        function estraiPrezzo(testoProdotti) {
-            try {
-                const parti = testoProdotti.split('(Tot: €');
-                if (parti.length > 1) {
-                    return parseFloat(parti[1].replace(')', '')) || 0;
+        socket.on('carica-ordini-attivi', (ordini) => { ordiniLocali = ordini; disegnaSchermata(); });
+        socket.on('ordine-ricevuto', (ordine) => { 
+            ordiniLocali.push(ordine); disegnaSchermata(); 
+            new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg').play().catch(()=>{});
+        });
+        socket.on('rimuovi-ordine-schermo', (id) => { ordiniLocali = ordiniLocali.filter(o => o.id !== parseInt(id)); disegnaSchermata(); });
+
+        function disegnaSchermata() {
+            const spazio = document.getElementById('spazioOrdini');
+            spazio.innerHTML = '';
+            const rep = document.getElementById('sceltaReparto').value;
+
+            ordiniLocali.forEach(o => {
+                const stringaProdotti = o[rep];
+                if (stringaProdotti && stringaProdotti.trim() !== "") {
+                    const div = document.createElement('div');
+                    div.className = 'scheda-ordine'; div.id = `ordine-${o.id}`;
+                    const testoEvidenziato = stringaProdotti.replace(/\[/g, '<span style="color:#ff5252">[').replace(/\]/g, ']</span>');
+                    div.innerHTML = `
+                        <div><h3>ORDINE #${o.id}</h3><div class="prodotti">${testoEvidenziato}</div></div>
+                        <div><div class="ora">Attesa: ${o.data}</div><button class="btn-fatto" onclick="segnalaPronto(${o.id})">PRONTO</button></div>
+                    `;
+                    spazio.appendChild(div);
                 }
-            } catch(e) {
-                console.log("Errore estrazione prezzo", e);
-            }
-            return 0;
-        }
-
-        function aggiornaIncassoGrafico() {
-            let somma = 0;
-            for (let id in prezziOrdiniMemory) {
-                somma += prezziOrdiniMemory[id];
-            }
-            document.getElementById('valoreIncassoTotale').innerText = `€ ${somma.toFixed(2)}`;
-        }
-
-        function generaHtmlStatoReparti(o) {
-            let html = '<div class="stato-reparti">';
-            const pronti = o.repartiPronti || [];
-            
-            const mappaReparti = {
-                'panini': '🍔',
-                'brace': '🍢',
-                'caciocavallo': '🧀',
-                'bevande': '🍺',
-                'dolci': '🍩'
-            };
-
-            for (let chiave in mappaReparti) {
-                if (o[chiave] && o[chiave].trim() !== "") {
-                    const isPronto = pronti.includes(chiave);
-                    const iconaStato = isPronto ? '✅' : '⏳';
-                    const classeStato = isPronto ? 'pronto' : 'attesa';
-                    html += `<span class="tag-reparto ${classeStato}">${mappaReparti[chiave]} ${iconaStato}</span>`;
-                }
-            }
-            html += '</div>';
-            return html;
-        }
-
-        function aggiungiInPrep(o) {
-            if (document.getElementById(`consegna-${o.id}`)) return;
-            prodottiMemory[o.id] = o.prodotti;
-            prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti);
-
-            const div = document.createElement('div');
-            div.className = 'voce-ordine'; div.id = `consegna-${o.id}`;
-            
-            div.innerHTML = `
-                <div>
-                    <div><span class="numero">#${o.id}</span> <span class="dettagli">(${o.prodotti.split(' - ')[0]})</span></div>
-                    ${generaHtmlStatoReparti(o)}
-                </div>
-                <div style="font-size:14px;color:#888; text-align:right;">${o.data}</div>
-            `;
-            document.getElementById('listaPreparazione').appendChild(div);
-            aggiornaIncassoGrafico();
-        }
-
-        function aggiungiPronto(id, prod, flash = false) {
-            if (document.getElementById(`pronto-${id}`)) return;
-            if (prod) {
-                prezziOrdiniMemory[id] = estraiPrezzo(prod);
-            }
-
-            const div = document.createElement('div');
-            div.className = 'voce-ordine' + (flash ? ' animazione-lampo' : ''); div.id = `pronto-${id}`;
-            div.innerHTML = `<div><span class="numero" style="color:#4caf50">#${id}</span> <span class="dettagli">${prod || 'Ordine'}</span></div><button class="btn-consegnato" onclick="archivia(${id})">CONSEGNATO</button>`;
-            document.getElementById('listaPronti').appendChild(div);
-            aggiornaIncassoGrafico();
-        }
-
-        socket.on('sincronizza-consegna', (dati) => {
-            document.getElementById('listaPreparazione').innerHTML = ''; 
-            document.getElementById('listaPronti').innerHTML = '';
-            prezziOrdiniMemory = {};
-
-            ordiniInPrepLocali = dati.inPreparazione; 
-            dati.inPreparazione.forEach(o => aggiungiInPrep(o));
-            dati.pronti.forEach(o => { 
-                prodottiMemory[o.id] = o.prodotti; 
-                aggiungiPronto(o.id, o.prodotti, false); 
             });
-            aggiornaIncassoGlobaleDati(dati.inPreparazione, dati.pronti);
-        });
-
-        function aggiornaIncassoGlobaleDati(inPrep, pronti) {
-            let totale = 0;
-            inPrep.forEach(o => { totale += estraiPrezzo(o.prodotti); prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti); });
-            pronti.forEach(o => { totale += estraiPrezzo(o.prodotti); prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti); });
-            document.getElementById('valoreIncassoTotale').innerText = `€ ${totale.toFixed(2)}`;
         }
-
-        socket.on('ordine-ricevuto', (o) => {
-            ordiniInPrepLocali.push(o);
-            aggiungiInPrep(o);
-        });
-        
-        socket.on('rimuovi-ordine-schermo', (dati) => {
-            const ordineLocale = ordiniInPrepLocali.find(o => o.id === parseInt(dati.id));
-            if (ordineLocale) {
-                if (!ordineLocale.repartiPronti) ordineLocale.repartiPronti = [];
-                if (!ordineLocale.repartiPronti.includes(dati.reparto)) {
-                    ordineLocale.repartiPronti.push(dati.reparto);
-                }
-                const elementoOrdine = document.getElementById(`consegna-${dati.id}`);
-                if (elementoOrdine) {
-                    const contenitoreStato = elementoOrdine.querySelector('.stato-reparti');
-                    if (contenitoreStato) {
-                        contenitoreStato.outerHTML = generaHtmlStatoReparti(ordineLocale);
-                    }
-                }
-            }
-        });
-
-        socket.on('ordine-completato', (id) => {
-            document.getElementById(`consegna-${id}`)?.remove();
-            ordiniInPrepLocali = ordiniInPrepLocali.filter(o => o.id !== parseInt(id));
-            aggiungiPronto(id, prodottiMemory[id] || "Ordine", true);
-            new Audio('https://actions.google.com/sounds/v1/notifications/ambient_notification.ogg').play().catch(()=>{});
-        });
-
-        async function archivia(id) {
-            document.getElementById(`pronto-${id}`)?.remove(); 
-            delete prodottiMemory[id];
-            await fetch('/ordine-archiviato', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) });
+        async function segnalaPronto(id) {
+            document.getElementById(`ordine-${id}`)?.remove();
+            ordiniLocali = ordiniLocali.filter(o => o.id !== id);
+            await fetch('/ordine-pronto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) });
         }
     </script>
 </body>
