@@ -85,7 +85,7 @@ app.post('/ordine-pronto', (req, res) => {
             ordine.repartiPronti.push(reparto);
         }
         
-        // Dice al KDS specifico di nascondere l'ordine solo per quel reparto
+        // Dice alla cucina di nascondere l'ordine solo per quel reparto
         io.emit('rimuovi-ordine-schermo', { id: id, reparto: reparto });
         
         // Controlla quali reparti hanno effettivamente del cibo/bevande in questo ordine
@@ -124,7 +124,7 @@ app.post('/ordine-archiviato', (req, res) => {
 
 // --- CONNESSIONI SOCKET.IO (Sincronizzazione Real-Time) ---
 io.on('connection', (socket) => {
-    // Sincronizza i monitor KDS quando si collegano o aggiornano (F5)
+    // Sincronizza i monitor della cucina quando si collegano o aggiornano (F5)
     socket.emit('carica-ordini-attivi', ordiniInPreparazione);
     
     // Sincronizza il tabellone consegne (consegna.html) e ricalcola l'incasso della serata
@@ -140,6 +140,6 @@ server.listen(PORT, () => {
     console.log(`🚀 SERVIZIO SAGRA ATTIVO SULLA PORTA ${PORT}`);
     console.log(`💻 Cassa principale: http://localhost:${PORT}/cassa.html`);
     console.log(`📺 Tabellone Consegne: http://localhost:${PORT}/consegna.html`);
-    console.log(`📱 Monitor Reparti KDS: http://localhost:${PORT}/kds.html`);
+    console.log(`📱 Monitor Reparti Cucina: http://localhost:${PORT}/cucina.html`);
     console.log(`==================================================\n`);
 });
