@@ -11,6 +11,18 @@
       "totaleEuro": "10.00",
       "data": "14:19",
       "repartiPronti": []
+    },
+    {
+      "id": 1,
+      "prodotti": "Sto cazzo - 1x Salsiccia [Insalata, Ketchup], 1x Hamburger [Insalata] - 1x Pannocchie - 1x Caciocavallo - 3x Coca Cola - 1x Crepes (Tot: €25.50)",
+      "panini": "1x Salsiccia [Insalata, Ketchup]<br>1x Hamburger [Insalata]",
+      "brace": "1x Pannocchie",
+      "caciocavallo": "1x Caciocavallo",
+      "bevande": "3x Coca Cola",
+      "dolci": "1x Crepes",
+      "totaleEuro": "25.50",
+      "data": "03:16 PM",
+      "repartiPronti": []
     }
   ],
   "pronti": []

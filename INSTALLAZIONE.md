@@ -44,4 +44,4 @@ Se invece tutte le postazioni sono sulla stessa rete Wi-Fi, questo passaggio non
 ## Avvio dell'applicazione
 
 - Stessa rete per tutti: `node server.js`, poi collegarsi a `http://<ip-locale-del-pc>:3000/cassa.html` (e `kds.html`, `consegna.html`) da ogni dispositivo.
-- Reti/hotspot diversi: eseguire `.\avvia-sagra.ps1` e seguire le istruzioni nel [README.md](README.md).
+- Reti/hotspot diversi: doppio click su `avvia-sagra.bat` e seguire le istruzioni nel [README.md](README.md).
