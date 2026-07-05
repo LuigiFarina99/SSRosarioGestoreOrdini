@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <title>Cassa Sagra</title>
     <style>
+        /* Blocco dello schermo prima del login */
+        #bloccoLogin {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #222; color: white; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: sans-serif;
+        }
+        .box-login { background: #333; padding: 30px; border-radius: 10px; border: 2px solid #ff9800; text-align: center; }
+        .box-login input { padding: 10px; font-size: 18px; border-radius: 5px; border: none; margin-bottom: 15px; width: 200px; text-align: center; }
+        .box-login button { padding: 10px 20px; font-size: 18px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
         body { font-family: sans-serif; padding: 20px; background: #f4f4f4; color: #333; margin: 0; padding-bottom: 100px; }
         .contenitore { max-width: 600px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto; }
         h1 { margin-top: 0; color: #e65100; font-size: 26px; text-align: center; border-bottom: 2px solid #ff9800; padding-bottom: 10px; }
@@ -13,7 +24,15 @@
         input[type="text"] { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         .riga { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 16px; }
         .prezzo-tag { color: #666; font-size: 14px; font-weight: bold; margin-left: auto; width: 60px; text-align: right; }
+        
+        /* Box dei condimenti dinamici */
         .sotto-opzioni { margin-left: 25px; margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ddd; display: none; }
+        .blocco-singolo-panino { border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
+        .blocco-singolo-panino:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .titolo-singolo-panino { font-size: 13px; color: #e65100; font-weight: bold; margin-bottom: 4px; }
+        .opzioni-inline { display: flex; flex-wrap: wrap; gap: 10px; }
+        .opzioni-inline label { font-weight: normal; font-size: 14px; display: flex; align-items: center; gap: 4px; margin: 0; }
+
         input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
         .quantita { width: 60px; padding: 6px; font-size: 16px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
         button.invia { display: block; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
@@ -22,6 +41,17 @@
     </style>
 </head>
 <body>
+
+<div id="bloccoLogin">
+    <div class="box-login">
+        <h2 style="color: #ff9800; margin-top: 0;">Accesso Cassa Sagra</h2>
+        <p>Inserisci la password per operare:</p>
+        <input type="password" id="inputPassword" placeholder="Password" onkeydown="if(event.key === 'Enter') controllaPassword()">
+        <br>
+        <button onclick="controllaPassword()">ACCEDI</button>
+    </div>
+</div>
+
 <div class="contenitore">
     <h1>Cassa Sagra</h1>
     <div class="sezione" style="background: transparent; border: none; padding: 0;">
@@ -29,37 +59,25 @@
         <input type="text" id="nomeCliente" placeholder="Es: Tavolo 4 o Nome" autocomplete="off">
     </div>
 
-    <!-- REPARTO PANINI -->
     <div class="sezione">
         <h3>🍔 Reparto Panini</h3>
         <div class="riga">
-            <input type="checkbox" id="checkSalsiccia" data-prezzo="5.00" onchange="aggiornaTutto('salsiccia')"> 
-            <input type="number" id="qtaSalsiccia" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <input type="checkbox" id="checkSalsiccia" data-prezzo="5.00" onchange="aggiornaCondimentiDinamici('salsiccia')"> 
+            <input type="number" id="qtaSalsiccia" class="quantita" value="1" min="1" onchange="aggiornaCondimentiDinamici('salsiccia')">
             <span>Panino con Salsiccia</span>
             <span class="prezzo-tag">€ 5.00</span>
         </div>
-        <div id="condimenti-salsiccia" class="sotto-opzioni">
-            <label><input type="checkbox" class="cond-salsiccia" value="Insalata"> Insalata</label>
-            <label><input type="checkbox" class="cond-salsiccia" value="Melanzane"> Melanzane</label>
-            <label><input type="checkbox" class="cond-salsiccia" value="Maionese"> Maionese</label>
-            <label><input type="checkbox" class="cond-salsiccia" value="Ketchup"> Ketchup</label>
-        </div>
+        <div id="condimenti-salsiccia" class="sotto-opzioni"></div>
 
         <div class="riga">
-            <input type="checkbox" id="checkHamburger" data-prezzo="5.00" onchange="aggiornaTutto('hamburger')"> 
-            <input type="number" id="qtaHamburger" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <input type="checkbox" id="checkHamburger" data-prezzo="5.00" onchange="aggiornaCondimentiDinamici('hamburger')"> 
+            <input type="number" id="qtaHamburger" class="quantita" value="1" min="1" onchange="aggiornaCondimentiDinamici('hamburger')">
             <span>Panino con Hamburger</span>
             <span class="prezzo-tag">€ 5.00</span>
         </div>
-        <div id="condimenti-hamburger" class="sotto-opzioni">
-            <label><input type="checkbox" class="cond-hamburger" value="Insalata"> Insalata</label>
-            <label><input type="checkbox" class="cond-hamburger" value="Melanzane"> Melanzane</label>
-            <label><input type="checkbox" class="cond-hamburger" value="Maionese"> Maionese</label>
-            <label><input type="checkbox" class="cond-hamburger" value="Ketchup"> Ketchup</label>
-        </div>
+        <div id="condimenti-hamburger" class="sotto-opzioni"></div>
     </div>
 
-    <!-- POSTAZIONE BRACE -->
     <div class="sezione">
         <h3>🍢 Postazione Brace</h3>
         <div class="riga">
@@ -76,7 +94,6 @@
         </div>
     </div>
 
-    <!-- POSTAZIONE CACIOCAVALLO -->
     <div class="sezione">
         <h3>🧀 Postazione Caciocavallo</h3>
         <div class="riga">
@@ -87,7 +104,6 @@
         </div>
     </div>
 
-    <!-- REPARTO BEVANDE -->
     <div class="sezione">
         <h3>🍺 Reparto Bevande / Bar</h3>
         <div class="riga">
@@ -116,7 +132,6 @@
         </div>
     </div>
 
-    <!-- REPARTO DOLCI -->
     <div class="sezione">
         <h3>🍩 Reparto Dolci</h3>
         <div class="riga">
@@ -146,13 +161,61 @@
 </div>
 
 <script>
-    let contatoreOrdine = parseInt(localStorage.getItem('ultimoNumeroOrdine')) || 1;
-    
-    function aggiornaTutto(tipo) {
-        const check = document.getElementById(tipo === 'salsiccia' ? 'checkSalsiccia' : 'checkHamburger');
-        document.getElementById('condimenti-' + tipo).style.display = check.checked ? 'block' : 'none';
+    // --- GESTIONE ACCESSO PASSWORD ---
+    if (sessionStorage.getItem('cassaAutenticata') === 'true') {
+        document.getElementById('bloccoLogin').style.display = 'none';
+    }
+
+    function controllaPassword() {
+        const passwordInserita = document.getElementById('inputPassword').value;
+        if (passwordInserita === 'Test90') {
+            sessionStorage.setItem('cassaAutenticata', 'true');
+            document.getElementById('bloccoLogin').style.display = 'none';
+        } else {
+            alert('Password errata! Accesso negato.');
+            document.getElementById('inputPassword').value = '';
+        }
+    }
+    // ---------------------------------
+
+    // Genera dinamicamente tante righe quant'è la quantità del panino selezionato
+    function aggiornaCondimentiDinamici(tipo) {
+        const idCheck = tipo === 'salsiccia' ? 'checkSalsiccia' : 'checkHamburger';
+        const idQta = tipo === 'salsiccia' ? 'qtaSalsiccia' : 'qtaHamburger';
+        const contenitore = document.getElementById('condimenti-' + tipo);
+        
+        const isChecked = document.getElementById(idCheck).checked;
+        const quantita = parseInt(document.getElementById(idQta).value) || 1;
+
+        if (!isChecked) {
+            contenitore.style.display = 'none';
+            contenitore.innerHTML = '';
+            calcolaTotale();
+            return;
+        }
+
+        contenitore.style.display = 'block';
+        contenitore.innerHTML = ''; // Svuota e rigenera
+
+        // Genera un blocco di condimenti per OGNI panino richiesto
+        for (let i = 1; i <= quantita; i++) {
+            const divPanino = document.createElement('div');
+            divPanino.className = 'blocco-singolo-panino';
+            divPanino.innerHTML = `
+                <div class="titolo-singolo-panino">Condimenti Panino ${i}:</div>
+                <div class="opzioni-inline">
+                    <label><input type="checkbox" class="cond-${tipo}-p${i}" value="Insalata"> Insalata</label>
+                    <label><input type="checkbox" class="cond-${tipo}-p${i}" value="Melanzane"> Melanzane</label>
+                    <label><input type="checkbox" class="cond-${tipo}-p${i}" value="Maionese"> Maionese</label>
+                    <label><input type="checkbox" class="cond-${tipo}-p${i}" value="Ketchup"> Ketchup</label>
+                </div>
+            `;
+            contenitore.appendChild(divPanino);
+        }
         calcolaTotale();
     }
+
+    let contatoreOrdine = parseInt(localStorage.getItem('ultimoNumeroOrdine')) || 1;
     
     function calcolaTotale() {
         let totale = 0;
@@ -173,22 +236,30 @@
         
         let paniniList = [], braceList = [], caciocavalloList = [], bevandeList = [], dolciList = [];
 
-        // Gestione Salsiccia con Condimenti corretti
+        // GESTIONE SALSICCIA DINAMICA
         if(document.getElementById('checkSalsiccia').checked) {
-            let cond = []; 
-            document.querySelectorAll('.cond-salsiccia:checked').forEach(c => cond.push(c.value));
-            let dettagliSalsiccia = `${document.getElementById('qtaSalsiccia').value}x Salsiccia`;
-            if(cond.length > 0) dettagliSalsiccia += ` [${cond.join(', ')}]`;
-            paniniList.push(dettagliSalsiccia);
+            const qta = parseInt(document.getElementById('qtaSalsiccia').value) || 1;
+            // Leggiamo i condimenti panino per panino
+            for(let i = 1; i <= qta; i++) {
+                let cond = [];
+                document.querySelectorAll(`.cond-salsiccia-p${i}:checked`).forEach(c => cond.push(c.value));
+                let stringaPanino = `1x Salsiccia`;
+                if(cond.length > 0) stringaPanino += ` [${cond.join(', ')}]`;
+                paniniList.push(stringaPanino);
+            }
         }
         
-        // Gestione Hamburger con Condimenti corretti
+        // GESTIONE HAMBURGER DINAMICO
         if(document.getElementById('checkHamburger').checked) {
-            let cond = []; 
-            document.querySelectorAll('.cond-hamburger:checked').forEach(c => cond.push(c.value));
-            let dettagliHamburger = `${document.getElementById('qtaHamburger').value}x Hamburger`;
-            if(cond.length > 0) dettagliHamburger += ` [${cond.join(', ')}]`;
-            paniniList.push(dettagliHamburger);
+            const qta = parseInt(document.getElementById('qtaHamburger').value) || 1;
+            // Leggiamo i condimenti panino per panino
+            for(let i = 1; i <= qta; i++) {
+                let cond = [];
+                document.querySelectorAll(`.cond-hamburger-p${i}:checked`).forEach(c => cond.push(c.value));
+                let stringaPanino = `1x Hamburger`;
+                if(cond.length > 0) stringaPanino += ` [${cond.join(', ')}]`;
+                paniniList.push(stringaPanino);
+            }
         }
         
         if(document.getElementById('checkArrosticini').checked) braceList.push(`${document.getElementById('qtaArrosticini').value}x Arrosticini`);
@@ -204,6 +275,7 @@
         if(document.getElementById('checkZuccheroFilato').checked) dolciList.push(`${document.getElementById('qtaZuccheroFilato').value}x Zucchero Filato`);
         if(document.getElementById('checkCrepes').checked) dolciList.push(`${document.getElementById('qtaCrepes').value}x Crepes`);
 
+        // Nel riepilogo ora vedrai ad esempio: "1x Salsiccia [Insalata], 1x Salsiccia [Melanzane, Maionese]"
         let riepilogo = [paniniList.join(', '), braceList.join(', '), caciocavalloList.join(', '), bevandeList.join(', '), dolciList.join(', ')].filter(Boolean).join(' - ');
 
         await fetch('/nuovo-ordine', {
@@ -212,7 +284,7 @@
             body: JSON.stringify({ 
                 id: idOrdineCorrente, 
                 prodotti: `${nome} - ${riepilogo} (Tot: €${importoFinale})`, 
-                panini: paniniList.join('<br>'), 
+                panini: paniniList.join('<br>'), // In cucina usciranno divisi riga per riga!
                 brace: braceList.join('<br>'),
                 caciocavallo: caciocavalloList.join('<br>'),
                 bevande: bevandeList.join('<br>'), 
@@ -228,11 +300,13 @@
         contatoreOrdine++; 
         localStorage.setItem('ultimoNumeroOrdine', contatoreOrdine);
         
-        // Reset rapido per la comanda successiva
+        // Reset totale
         document.getElementById('nomeCliente').value = '';
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
         document.getElementById('condimenti-salsiccia').style.display = 'none';
+        document.getElementById('condimenti-salsiccia').innerHTML = '';
         document.getElementById('condimenti-hamburger').style.display = 'none';
+        document.getElementById('condimenti-hamburger').innerHTML = '';
         document.querySelectorAll('input[type="number"]').forEach(num => num.value = 1);
         calcolaTotale();
     }
