@@ -1,0 +1,2 @@
+1. Modificare la parte della cassa, in modo tale che se ordino più panini posso scegliere le cose extra per singolo panino
+2. Nella pagina di consegna, modofcare la visuale in modo che sia meglio visibile che cosa è stato ordinato

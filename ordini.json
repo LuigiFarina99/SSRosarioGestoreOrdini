@@ -1,27 +1,53 @@
 {
   "inPreparazione": [
     {
-      "id": 9,
-      "prodotti": "Cliente Anonimo - 1x Salsiccia [Insalata] - 1x Caciocavallo - 1x Acqua (Tot: €10.00)",
-      "panini": "1x Salsiccia [Insalata]",
+      "id": 1,
+      "prodotti": "Cliente Anonimo - 1x Salsiccia (Tot: €5.00)",
+      "panini": "1x Salsiccia",
       "brace": "",
-      "caciocavallo": "1x Caciocavallo",
-      "bevande": "1x Acqua",
+      "caciocavallo": "",
+      "bevande": "",
       "dolci": "",
-      "totaleEuro": "10.00",
-      "data": "14:19",
-      "repartiPronti": []
+      "totaleEuro": "5.00",
+      "data": "03:52 PM",
+      "repartiPronti": [
+        null
+      ]
     },
     {
       "id": 1,
-      "prodotti": "Sto cazzo - 1x Salsiccia [Insalata, Ketchup], 1x Hamburger [Insalata] - 1x Pannocchie - 1x Caciocavallo - 3x Coca Cola - 1x Crepes (Tot: €25.50)",
-      "panini": "1x Salsiccia [Insalata, Ketchup]<br>1x Hamburger [Insalata]",
+      "prodotti": "Mario - 1x Arrosticini, 1x Pannocchie (Tot: €5.50)",
+      "panini": "",
+      "brace": "1x Arrosticini<br>1x Pannocchie",
+      "caciocavallo": "",
+      "bevande": "",
+      "dolci": "",
+      "totaleEuro": "5.50",
+      "data": "03:55 PM",
+      "repartiPronti": []
+    },
+    {
+      "id": 2,
+      "prodotti": "Cliente Anonimo - 1x Salsiccia, 1x Salsiccia, 1x Hamburger, 1x Hamburger - 1x Pannocchie - 1x Caciocavallo - 1x Coca Cola, 1x Vino c. Percoche - 1x Crepes (Tot: €36.50)",
+      "panini": "1x Salsiccia<br>1x Salsiccia<br>1x Hamburger<br>1x Hamburger",
       "brace": "1x Pannocchie",
       "caciocavallo": "1x Caciocavallo",
-      "bevande": "3x Coca Cola",
+      "bevande": "1x Coca Cola<br>1x Vino c. Percoche",
       "dolci": "1x Crepes",
-      "totaleEuro": "25.50",
-      "data": "03:16 PM",
+      "totaleEuro": "36.50",
+      "data": "03:58 PM",
+      "repartiPronti": []
+    },
+    {
+      "id": 3,
+      "prodotti": "Cliente Anonimo - 1x Salsiccia [Insalata, Melanzane], 1x Salsiccia [Maionese, Ketchup] (Tot: €10.00)",
+      "panini": "1x Salsiccia [Insalata, Melanzane]<br>1x Salsiccia [Maionese, Ketchup]",
+      "brace": "",
+      "caciocavallo": "",
+      "bevande": "",
+      "dolci": "",
+      "totaleEuro": "10.00",
+      "data": "04:01 PM",
       "repartiPronti": []
     }
   ],
