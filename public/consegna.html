@@ -44,6 +44,8 @@
         #preparazione h2 { color: #ff9800; border-color: #ff9800; }
         #pronti h2 { color: #4caf50; border-color: #4caf50; }
         .lista { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex-grow: 1; }
+        
+        /* Modificata la voce ordine per adattarsi meglio a una struttura a blocchi */
         .voce-ordine { background: #333; padding: 15px; border-radius: 8px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #ff9800; }
         #listaPronti .voce-ordine { border-left-color: #4caf50; }
         .animazione-lampo { animation: lampo 0.5s ease-in-out 3; }
@@ -51,10 +53,11 @@
         .dettagli { font-size: 16px; color: #ccc; }
         .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        .stato-reparti { display: flex; gap: 8px; margin-top: 5px; font-size: 13px; font-weight: bold; }
-        .tag-reparto { padding: 2px 6px; border-radius: 4px; background: #444; display: flex; align-items: center; gap: 4px; }
-        .tag-reparto.pronto { background: #1b5e20; color: #a5d6a7; }
-        .tag-reparto.attesa { background: #e65100; color: #ffcc80; }
+        /* Modificata la disposizione dello stato reparti: da orizzontale a verticale */
+        .stato-reparti { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 15px; font-weight: bold; }
+        .tag-reparto { padding: 6px 12px; border-radius: 5px; background: #444; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+        .tag-reparto.pronto { background: #1b5e20; color: #a5d6a7; border-left: 4px solid #4caf50; }
+        .tag-reparto.attesa { background: #e65100; color: #ffcc80; border-left: 4px solid #ff9800; }
 
         @keyframes lampo { 0%, 100% { background: #333; } 50% { background: #2e7d32; } }
     </style>
@@ -125,30 +128,42 @@
             document.getElementById('valoreIncassoTotale').innerText = `€ ${somma.toFixed(2)}`;
         }
 
+        // AGGIORNATA: Questa funzione ora legge le stringhe di testo reali inviate per ogni specifico reparto
         function generaHtmlStatoReparti(o) {
             let html = '<div class="stato-reparti">';
             const pronti = o.repartiPronti || [];
             
             const mappaReparti = {
-                'panini': '🍔',
-                'brace': '🍢',
-                'caciocavallo': '🧀',
-                'bevande': '🍺',
-                'dolci': '🍩'
+                'panini': '🍔 Panini',
+                'brace': '🍢 Brace',
+                'caciocavallo': '🧀 Caciocavallo',
+                'bevande': '🍺 Bevande',
+                'dolci': '🍩 Dolci'
             };
 
             for (let chiave in mappaReparti) {
+                // Se questo reparto ha effettivamente dei prodotti registrati nell'ordine
                 if (o[chiave] && o[chiave].trim() !== "") {
                     const isPronto = pronti.includes(chiave);
-                    const iconaStato = isPronto ? '✅' : '⏳';
+                    const iconaStato = isPronto ? '✅ PRONTO' : '⏳ IN CORSO';
                     const classeStato = isPronto ? 'pronto' : 'attesa';
-                    html += `<span class="tag-reparto ${classeStato}">${mappaReparti[chiave]} ${iconaStato}</span>`;
+                    
+                    // Sostituiamo le parentesi quadre dei condimenti con delle tonde per una resa estetica più pulita
+                    const testoDettagliato = o[chiave].replace(/\[/g, ' (').replace(/\]/g, ')');
+
+                    html += `
+                        <div class="tag-reparto ${classeStato}">
+                            <span><strong>${mappaReparti[chiave]}:</strong> ${testoDettagliato}</span>
+                            <span style="font-size: 12px; font-weight: bold; white-space: nowrap; padding-left: 10px;">${iconaStato}</span>
+                        </div>
+                    `;
                 }
             }
             html += '</div>';
             return html;
         }
 
+        // AGGIORNATA: Strutturato il box per accogliere comodamente le righe di testo
         function aggiungiInPrep(o) {
             if (document.getElementById(`consegna-${o.id}`)) return;
             prodottiMemory[o.id] = o.prodotti;
@@ -156,13 +171,15 @@
 
             const div = document.createElement('div');
             div.className = 'voce-ordine'; div.id = `consegna-${o.id}`;
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'stretch';
             
             div.innerHTML = `
-                <div>
-                    <div><span class="numero">#${o.id}</span> <span class="dettagli">(${o.prodotti.split(' - ')[0]})</span></div>
-                    ${generaHtmlStatoReparti(o)}
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 6px;">
+                    <div><span class="numero">#${o.id}</span></div>
+                    <div style="font-size:14px; color:#888;">${o.data}</div>
                 </div>
-                <div style="font-size:14px;color:#888; text-align:right;">${o.data}</div>
+                ${generaHtmlStatoReparti(o)}
             `;
             document.getElementById('listaPreparazione').appendChild(div);
             aggiornaIncassoGrafico();
@@ -218,6 +235,7 @@
                 if (elementoOrdine) {
                     const contenitoreStato = elementoOrdine.querySelector('.stato-reparti');
                     if (contenitoreStato) {
+                        // Sostituisce l'HTML vecchio con la nuova lista aggiornata (cambieranno i colori in base a cosa è pronto)
                         contenitoreStato.outerHTML = generaHtmlStatoReparti(ordineLocale);
                     }
                 }
