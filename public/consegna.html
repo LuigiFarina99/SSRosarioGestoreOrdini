@@ -40,6 +40,13 @@
         .numero { font-size: 24px; font-weight: bold; }
         .dettagli { font-size: 16px; color: #ccc; }
         .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* Stili per le icone dei reparti */
+        .stato-reparti { display: flex; gap: 8px; margin-top: 5px; font-size: 13px; font-weight: bold; }
+        .tag-reparto { padding: 2px 6px; border-radius: 4px; background: #444; display: flex; align-items: center; gap: 4px; }
+        .tag-reparto.pronto { background: #1b5e20; color: #a5d6a7; }
+        .tag-reparto.attesa { background: #e65100; color: #ffcc80; }
+
         @keyframes lampo { 0%, 100% { background: #333; } 50% { background: #2e7d32; } }
     </style>
 </head>
@@ -59,11 +66,10 @@
     <script>
         const socket = io();
         let prodottiMemory = {};
+        let ordiniInPrepLocali = []; 
         
-        // Memoria interna per tenere traccia del costo di ogni singolo ordine numerato
         let prezziOrdiniMemory = {};
 
-        // Funzione di supporto per estrarre il prezzo dal testo "Nome - Prodotti (Tot: €XX.XX)"
         function estraiPrezzo(testoProdotti) {
             try {
                 const parti = testoProdotti.split('(Tot: €');
@@ -76,7 +82,6 @@
             return 0;
         }
 
-        // Calcola la somma di tutti gli ordini registrati nella pagina in questo momento
         function aggiornaIncassoGrafico() {
             let somma = 0;
             for (let id in prezziOrdiniMemory) {
@@ -85,16 +90,46 @@
             document.getElementById('valoreIncassoTotale').innerText = `€ ${somma.toFixed(2)}`;
         }
 
+        function generaHtmlStatoReparti(o) {
+            let html = '<div class="stato-reparti">';
+            const pronti = o.repartiPronti || [];
+            
+            const mappaReparti = {
+                'panini': '🍔',
+                'brace': '🍢',
+                'caciocavallo': '🧀',
+                'bevande': '🍺',
+                'dolci': '🍩'
+            };
+
+            for (let chiave in mappaReparti) {
+                if (o[chiave] && o[chiave].trim() !== "") {
+                    const isPronto = pronti.includes(chiave);
+                    const iconaStato = isPronto ? '✅' : '⏳';
+                    const classeStato = isPronto ? 'pronto' : 'attesa';
+                    html += `<span class="tag-reparto ${classeStato}">${mappaReparti[chiave]} ${iconaStato}</span>`;
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+
         function aggiungiInPrep(o) {
             if (document.getElementById(`consegna-${o.id}`)) return;
             prodottiMemory[o.id] = o.prodotti;
             
-            // Memorizza il prezzo di questo ordine
             prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti);
 
             const div = document.createElement('div');
             div.className = 'voce-ordine'; div.id = `consegna-${o.id}`;
-            div.innerHTML = `<div><span class="numero">#${o.id}</span> <span class="dettagli">(${o.prodotti.split(' - ')[0]})</span></div><div style="font-size:14px;color:#888;">${o.data}</div>`;
+            
+            div.innerHTML = `
+                <div>
+                    <div><span class="numero">#${o.id}</span> <span class="dettagli">(${o.prodotti.split(' - ')[0]})</span></div>
+                    ${generaHtmlStatoReparti(o)}
+                </div>
+                <div style="font-size:14px;color:#888; text-align:right;">${o.data}</div>
+            `;
             document.getElementById('listaPreparazione').appendChild(div);
             
             aggiornaIncassoGrafico();
@@ -103,7 +138,6 @@
         function aggiungiPronto(id, prod, flash = false) {
             if (document.getElementById(`pronto-${id}`)) return;
             
-            // Memorizza il prezzo se non presente
             if (prod) {
                 prezziOrdiniMemory[id] = estraiPrezzo(prod);
             }
@@ -119,8 +153,10 @@
         socket.on('sincronizza-consegna', (dati) => {
             document.getElementById('listaPreparazione').innerHTML = ''; 
             document.getElementById('listaPronti').innerHTML = '';
-            prezziOrdiniMemory = {}; // Svuota la memoria temporanea prima del ricalcolo totale
+            prezziOrdiniMemory = {};
 
+            ordiniInPrepLocali = dati.inPreparazione; 
+            
             dati.inPreparazione.forEach(o => aggiungiInPrep(o));
             dati.pronti.forEach(o => { 
                 prodottiMemory[o.id] = o.prodotti; 
@@ -130,7 +166,6 @@
             aggiornaIncassoGlobaleDati(dati.inPreparazione, dati.pronti);
         });
 
-        // Questa funzione serve a calcolare l'incasso anche dagli ordini storici caricati dal server
         function aggiornaIncassoGlobaleDati(inPrep, pronti) {
             let totale = 0;
             inPrep.forEach(o => { totale += estraiPrezzo(o.prodotti); prezziOrdiniMemory[o.id] = estraiPrezzo(o.prodotti); });
@@ -138,10 +173,32 @@
             document.getElementById('valoreIncassoTotale').innerText = `€ ${totale.toFixed(2)}`;
         }
 
-        socket.on('ordine-ricevuto', (o) => aggiungiInPrep(o));
+        socket.on('ordine-ricevuto', (o) => {
+            ordiniInPrepLocali.push(o); // <-- CORRETTO (Rimossa la 's' di errore)
+            aggiungiInPrep(o);
+        });
         
+        socket.on('rimuovi-ordine-schermo', (dati) => {
+            const ordineLocale = ordiniInPrepLocali.find(o => o.id === parseInt(dati.id));
+            if (ordineLocale) {
+                if (!ordineLocale.repartiPronti) ordineLocale.repartiPronti = [];
+                if (!ordineLocale.repartiPronti.includes(dati.reparto)) {
+                    ordineLocale.repartiPronti.push(dati.reparto);
+                }
+                
+                const elementoOrdine = document.getElementById(`consegna-${dati.id}`);
+                if (elementoOrdine) {
+                    const contenitoreStato = elementoOrdine.querySelector('.stato-reparti');
+                    if (contenitoreStato) {
+                        contenitoreStato.outerHTML = generaHtmlStatoReparti(ordineLocale);
+                    }
+                }
+            }
+        });
+
         socket.on('ordine-completato', (id) => {
             document.getElementById(`consegna-${id}`)?.remove();
+            ordiniInPrepLocali = ordiniInPrepLocali.filter(o => o.id !== parseInt(id));
             aggiungiPronto(id, prodottiMemory[id] || "Ordine", true);
             new Audio('https://actions.google.com/sounds/v1/notifications/ambient_notification.ogg').play().catch(()=>{});
         });
@@ -149,9 +206,6 @@
         async function archivia(id) {
             document.getElementById(`pronto-${id}`)?.remove(); 
             delete prodottiMemory[id];
-            // NOTA: NON eliminiamo il prezzo da prezziOrdiniMemory[id] così l'incasso totale 
-            // della serata resta memorizzato in alto anche se l'ordine viene consegnato e sparisce dallo schermo!
-            
             await fetch('/ordine-archiviato', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) });
         }
     </script>
