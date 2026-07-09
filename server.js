@@ -14,6 +14,13 @@ const FILE_DB = path.join(__dirname, 'ordini.json');
 // Memoria temporanea del server
 let ordiniInPreparazione = [];
 let ordiniPronti = [];
+let prossimoIdOrdine = 1;
+
+// Calcola il prossimo id libero in base agli ordini gia' esistenti (dopo il caricamento da file)
+function calcolaProssimoIdOrdine() {
+    const idEsistenti = [...ordiniInPreparazione, ...ordiniPronti].map(o => o.id);
+    return idEsistenti.length > 0 ? Math.max(...idEsistenti) + 1 : 1;
+}
 
 // Funzione per salvare lo stato corrente su file JSON (Anti-Crash)
 function salvaSuFile() {
@@ -43,13 +50,14 @@ function caricaDaFile() {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 caricaDaFile();
+prossimoIdOrdine = calcolaProssimoIdOrdine();
 
 // --- ROTTE API ---
 
 // 1. Ricezione nuovo ordine dalla Cassa
 app.post('/nuovo-ordine', (req, res) => {
     const nuovoOrdine = {
-        id: parseInt(req.body.id),
+        id: prossimoIdOrdine++, // Generato dal server: garantisce id sempre univoci
         prodotti: req.body.prodotti,
         panini: req.body.panini || "",
         brace: req.body.brace || "",
@@ -62,12 +70,12 @@ app.post('/nuovo-ordine', (req, res) => {
     };
 
     ordiniInPreparazione.push(nuovoOrdine);
-    
+
     // Notifica i monitor dei reparti e il tabellone consegne
     io.emit('ordine-ricevuto', nuovoOrdine);
-    
+
     salvaSuFile();
-    res.sendStatus(200);
+    res.json({ id: nuovoOrdine.id });
 });
 
 // 2. Gestione "Pronto" del singolo reparto (LA TUA ROTTA CORRETTA)
@@ -102,12 +110,14 @@ app.post('/ordine-pronto', (req, res) => {
         if (tuttiPronti) {
             ordiniInPreparazione = ordiniInPreparazione.filter(o => o.id !== parseInt(id));
             ordiniPronti.push(ordine);
-            
+
             // Sposta l'ordine a destra sul tabellone delle consegne
             io.emit('ordine-completato', id);
-            
-            salvaSuFile();
         }
+
+        // Salva sempre, anche se e' pronto solo un reparto: altrimenti un riavvio
+        // del server nel mezzo perderebbe il progresso parziale gia' segnalato
+        salvaSuFile();
     }
     res.sendStatus(200);
 });

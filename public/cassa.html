@@ -38,6 +38,24 @@
         button.invia { display: block; width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
         .ricevuta { display: none; margin-top: 20px; padding: 15px; background: #e8f5e9; border: 2px dashed #4caf50; border-radius: 5px; text-align: center; }
         .barra-totale { position: fixed; bottom: 0; left: 0; width: 100%; background: #222; color: #fff; padding: 15px 30px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; font-size: 24px; font-weight: bold; border-top: 4px solid #ff9800; z-index: 1000; }
+
+        /* Modal di incasso/pagamento */
+        .overlay-pagamento { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; justify-content: center; align-items: center; }
+        .overlay-pagamento.aperto { display: flex; }
+        .box-pagamento { background: white; border-radius: 10px; padding: 25px; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); box-sizing: border-box; }
+        .righe-pagamento { display: flex; gap: 15px; margin-bottom: 20px; }
+        .colonna-pagamento { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .colonna-pagamento label { font-size: 14px; }
+        .colonna-pagamento input { padding: 10px; font-size: 20px; border: 2px solid #ccc; border-radius: 5px; text-align: center; box-sizing: border-box; width: 100%; }
+        .resto-riquadro { background: #e8f5e9; border: 2px solid #4caf50; border-radius: 5px; padding: 10px; text-align: center; font-weight: bold; color: #1b5e20; }
+        .colonna-dovuto { justify-content: center; align-items: center; background: #fff3e0; border-radius: 5px; padding: 15px; text-align: center; }
+        .etichetta-dovuto { font-size: 14px; font-weight: bold; color: #e65100; }
+        .importo-dovuto { font-size: 30px; font-weight: bold; color: #e65100; margin-top: 8px; }
+        .pulsanti-pagamento { display: flex; gap: 10px; }
+        .pulsanti-pagamento button { flex: 1; padding: 14px; font-size: 16px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-annulla { background: #e0e0e0; color: #333; }
+        .btn-conferma { background: #4caf50; color: white; }
+        .btn-conferma:disabled { background: #a5d6a7; cursor: not-allowed; opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -148,7 +166,7 @@
         </div>
     </div>
 
-    <button class="invia" onclick="inviaComandaModerna()">INVIA ORDINE AI REPARTI</button>
+    <button class="invia" onclick="apriModalPagamento()">INVIA ORDINE AI REPARTI</button>
     <div id="schermataRicevuta" class="ricevuta">
         <h2>ORDINE INVIATO!</h2>
         <div id="numeroOrdineStampa" style="font-size: 45px; font-weight: bold; color: #1b5e20;">#1</div>
@@ -158,6 +176,30 @@
 <div class="barra-totale">
     <span>TOTALE DA INCASSARE:</span>
     <span id="displayTotale" style="color: #ff9800;">€ 0.00</span>
+</div>
+
+<div id="modalPagamento" class="overlay-pagamento">
+    <div class="box-pagamento">
+        <h2 style="margin-top:0; text-align:center; color:#e65100;">Incasso Ordine</h2>
+        <div class="righe-pagamento">
+            <div class="colonna-pagamento">
+                <label for="inputContantiRicevuti">Contanti ricevuti:</label>
+                <input type="number" id="inputContantiRicevuti" step="0.01" min="0" placeholder="€ 0.00" oninput="aggiornaResto()" autocomplete="off">
+                <div class="resto-riquadro">
+                    <span>Resto:</span>
+                    <span id="displayResto">€ 0.00</span>
+                </div>
+            </div>
+            <div class="colonna-pagamento colonna-dovuto">
+                <span class="etichetta-dovuto">Il cliente deve dare</span>
+                <span id="displayImportoDovuto" class="importo-dovuto">€ 0.00</span>
+            </div>
+        </div>
+        <div class="pulsanti-pagamento">
+            <button class="btn-annulla" onclick="chiudiModalPagamento()">Annulla</button>
+            <button class="btn-conferma" id="btnConfermaInvio" onclick="confermaInvioOrdine()" disabled>INVIA ORDINE</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -215,8 +257,6 @@
         calcolaTotale();
     }
 
-    let contatoreOrdine = parseInt(localStorage.getItem('ultimoNumeroOrdine')) || 1;
-    
     function calcolaTotale() {
         let totale = 0;
         document.querySelectorAll('input[data-prezzo]').forEach(cb => {
@@ -229,9 +269,47 @@
         return totale.toFixed(2);
     }
     
-    async function inviaComandaModerna() {
+    // --- GESTIONE MODAL INCASSO/PAGAMENTO ---
+    function apriModalPagamento() {
+        const totale = parseFloat(calcolaTotale());
+        document.getElementById('displayImportoDovuto').innerText = `€ ${totale.toFixed(2)}`;
+        document.getElementById('inputContantiRicevuti').value = '';
+        document.getElementById('displayResto').innerText = `€ 0.00`;
+        document.getElementById('displayResto').style.color = '#1b5e20';
+        document.getElementById('btnConfermaInvio').disabled = true;
+        document.getElementById('modalPagamento').classList.add('aperto');
+        setTimeout(() => document.getElementById('inputContantiRicevuti').focus(), 50);
+    }
+
+    function chiudiModalPagamento() {
+        document.getElementById('modalPagamento').classList.remove('aperto');
+    }
+
+    function aggiornaResto() {
+        const totale = parseFloat(calcolaTotale());
+        const inputEl = document.getElementById('inputContantiRicevuti');
+        const contanti = parseFloat(inputEl.value);
+        const btnConferma = document.getElementById('btnConfermaInvio');
+        const displayResto = document.getElementById('displayResto');
+
+        if (inputEl.value === '' || isNaN(contanti)) {
+            displayResto.innerText = `€ 0.00`;
+            displayResto.style.color = '#1b5e20';
+            btnConferma.disabled = true;
+            return;
+        }
+
+        const resto = contanti - totale;
+        displayResto.innerText = `€ ${resto.toFixed(2)}`;
+        displayResto.style.color = resto < 0 ? '#c62828' : '#1b5e20';
+        btnConferma.disabled = false;
+    }
+    // ------------------------------------------
+
+    async function confermaInvioOrdine() {
+        document.getElementById('btnConfermaInvio').disabled = true;
+
         const nome = document.getElementById('nomeCliente').value.trim() || "Cliente Anonimo";
-        const idOrdineCorrente = contatoreOrdine;
         const importoFinale = calcolaTotale();
         
         let paniniList = [], braceList = [], caciocavalloList = [], bevandeList = [], dolciList = [];
@@ -278,28 +356,27 @@
         // Nel riepilogo ora vedrai ad esempio: "1x Salsiccia [Insalata], 1x Salsiccia [Melanzane, Maionese]"
         let riepilogo = [paniniList.join(', '), braceList.join(', '), caciocavalloList.join(', '), bevandeList.join(', '), dolciList.join(', ')].filter(Boolean).join(' - ');
 
-        await fetch('/nuovo-ordine', {
+        const risposta = await fetch('/nuovo-ordine', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                id: idOrdineCorrente, 
-                prodotti: `${nome} - ${riepilogo} (Tot: €${importoFinale})`, 
+            body: JSON.stringify({
+                prodotti: `${nome} - ${riepilogo} (Tot: €${importoFinale})`,
                 panini: paniniList.join('<br>'), // In cucina usciranno divisi riga per riga!
                 brace: braceList.join('<br>'),
                 caciocavallo: caciocavalloList.join('<br>'),
-                bevande: bevandeList.join('<br>'), 
+                bevande: bevandeList.join('<br>'),
                 dolci: dolciList.join('<br>'),
-                totaleEuro: importoFinale, 
-                data: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
+                totaleEuro: importoFinale,
+                data: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             })
         });
+        const risultato = await risposta.json();
+        const idOrdineCorrente = risultato.id;
 
+        chiudiModalPagamento();
         document.getElementById('numeroOrdineStampa').innerText = `#${idOrdineCorrente}`;
         document.getElementById('schermataRicevuta').style.display = 'block';
-        
-        contatoreOrdine++; 
-        localStorage.setItem('ultimoNumeroOrdine', contatoreOrdine);
-        
+
         // Reset totale
         document.getElementById('nomeCliente').value = '';
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
