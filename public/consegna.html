@@ -51,7 +51,7 @@
         .animazione-lampo { animation: lampo 0.5s ease-in-out 3; }
         .numero { font-size: 24px; font-weight: bold; }
         .dettagli { font-size: 16px; color: #ccc; }
-        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
         
         /* Modificata la disposizione dello stato reparti: da orizzontale a verticale */
         .stato-reparti { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 15px; font-weight: bold; }
@@ -193,7 +193,7 @@
 
             const div = document.createElement('div');
             div.className = 'voce-ordine' + (flash ? ' animazione-lampo' : ''); div.id = `pronto-${id}`;
-            div.innerHTML = `<div><span class="numero" style="color:#4caf50">#${id}</span> <span class="dettagli">${prod || 'Ordine'}</span></div><button class="btn-consegnato" onclick="archivia(${id})">CONSEGNATO</button>`;
+            div.innerHTML = `<div><span class="numero" style="color:#4caf50">#${id}</span> <span class="dettagli">${prod || 'Ordine'}</span></div><button class="btn-consegnato">CONSEGNATO</button>`;
             document.getElementById('listaPronti').appendChild(div);
             aggiornaIncassoGrafico();
         }
