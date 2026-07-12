@@ -72,11 +72,6 @@
 
 <div class="contenitore">
     <h1>Cassa Sagra</h1>
-    <div class="sezione" style="background: transparent; border: none; padding: 0;">
-        <label for="nomeCliente">Nome Cliente / Tavolo:</label>
-        <input type="text" id="nomeCliente" placeholder="Es: Tavolo 4 o Nome" autocomplete="off">
-    </div>
-
     <div class="sezione">
         <h3>🍔 Reparto Panini</h3>
         <div class="riga">
@@ -302,14 +297,13 @@
         const resto = contanti - totale;
         displayResto.innerText = `€ ${resto.toFixed(2)}`;
         displayResto.style.color = resto < 0 ? '#c62828' : '#1b5e20';
-        btnConferma.disabled = false;
+        btnConferma.disabled = resto < 0;
     }
     // ------------------------------------------
 
     async function confermaInvioOrdine() {
         document.getElementById('btnConfermaInvio').disabled = true;
 
-        const nome = document.getElementById('nomeCliente').value.trim() || "Cliente Anonimo";
         const importoFinale = calcolaTotale();
         
         let paniniList = [], braceList = [], caciocavalloList = [], bevandeList = [], dolciList = [];
@@ -360,7 +354,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                prodotti: `${nome} - ${riepilogo} (Tot: €${importoFinale})`,
+                prodotti: `${riepilogo} (Tot: €${importoFinale})`,
                 panini: paniniList.join('<br>'), // In cucina usciranno divisi riga per riga!
                 brace: braceList.join('<br>'),
                 caciocavallo: caciocavalloList.join('<br>'),
@@ -378,7 +372,6 @@
         document.getElementById('schermataRicevuta').style.display = 'block';
 
         // Reset totale
-        document.getElementById('nomeCliente').value = '';
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
         document.getElementById('condimenti-salsiccia').style.display = 'none';
         document.getElementById('condimenti-salsiccia').innerHTML = '';
