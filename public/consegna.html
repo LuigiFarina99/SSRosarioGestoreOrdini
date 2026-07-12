@@ -51,7 +51,7 @@
         .animazione-lampo { animation: lampo 0.5s ease-in-out 3; }
         .numero { font-size: 24px; font-weight: bold; }
         .dettagli { font-size: 16px; color: #ccc; }
-        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
+        .btn-consegnato { background: #d32f2f; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
         /* Modificata la disposizione dello stato reparti: da orizzontale a verticale */
         .stato-reparti { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; font-size: 15px; font-weight: bold; }
@@ -82,7 +82,7 @@
     <h1>STATO ORDINAZIONI</h1>
     <div class="tabellone">
         <div class="colonna" id="preparazione"><h2>IN PREPARAZIONE ⏳</h2><div class="lista" id="listaPreparazione"></div></div>
-        <div class="colonna" id="pronti"><h2>PRONTI 🍔</h2><div class="lista" id="listaPronti"></div></div>
+        <div class="colonna" id="pronti"><h2>PRONTI ✅</h2><div class="lista" id="listaPronti"></div></div>
     </div>
 
     <script>
