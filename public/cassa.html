@@ -110,10 +110,10 @@
     <div class="sezione">
         <h3>🧀 Postazione Caciocavallo</h3>
         <div class="riga">
-            <input type="checkbox" id="checkCaciocavallo" data-prezzo="4.00" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkCaciocavallo" data-prezzo="2.50" onchange="calcolaTotale()">
             <input type="number" id="qtaCaciocavallo" class="quantita" value="1" min="1" onchange="calcolaTotale()">
             <span>Caciocavallo Impiccato</span>
-            <span class="prezzo-tag">€ 4.00</span>
+            <span class="prezzo-tag">€ 2.50</span>
         </div>
     </div>
 
@@ -126,38 +126,56 @@
             <span class="prezzo-tag">€ 1.00</span>
         </div>
         <div class="riga">
-            <input type="checkbox" id="checkCoca" data-prezzo="2.00" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkCoca" data-prezzo="2.00" onchange="calcolaTotale()">
             <input type="number" id="qtaCoca" class="quantita" value="1" min="1" onchange="calcolaTotale()">
-            <span>Coca Cola</span>
+            <span>Pepsi in Lattina</span>
             <span class="prezzo-tag">€ 2.00</span>
         </div>
         <div class="riga">
-            <input type="checkbox" id="checkBirra" data-prezzo="2.50" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkBirra" data-prezzo="2.50" onchange="calcolaTotale()">
             <input type="number" id="qtaBirra" class="quantita" value="1" min="1" onchange="calcolaTotale()">
             <span>Birra</span>
             <span class="prezzo-tag">€ 2.50</span>
         </div>
         <div class="riga">
-            <input type="checkbox" id="checkVino" data-prezzo="5.00" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkVino" data-prezzo="2.00" onchange="calcolaTotale()">
             <input type="number" id="qtaVino" class="quantita" value="1" min="1" onchange="calcolaTotale()">
-            <span>Vino</span>
+            <span>Bicchiere di Vino 25cl</span>
+            <span class="prezzo-tag">€ 2.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkVinoBottiglia" data-prezzo="5.00" onchange="calcolaTotale()">
+            <input type="number" id="qtaVinoBottiglia" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Bottiglia di Vino 1L</span>
             <span class="prezzo-tag">€ 5.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkCaffe" data-prezzo="1.00" onchange="calcolaTotale()">
+            <input type="number" id="qtaCaffe" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Caffè</span>
+            <span class="prezzo-tag">€ 1.00</span>
         </div>
     </div>
 
     <div class="sezione">
         <h3>🍩 Reparto Dolci</h3>
         <div class="riga">
-            <input type="checkbox" id="checkZuccheroFilato" data-prezzo="2.00" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkZuccheroFilato" data-prezzo="1.00" onchange="calcolaTotale()">
             <input type="number" id="qtaZuccheroFilato" class="quantita" value="1" min="1" onchange="calcolaTotale()">
             <span>Zucchero Filato</span>
-            <span class="prezzo-tag">€ 2.00</span>
+            <span class="prezzo-tag">€ 1.00</span>
         </div>
         <div class="riga">
-            <input type="checkbox" id="checkCrepes" data-prezzo="3.00" onchange="calcolaTotale()"> 
+            <input type="checkbox" id="checkCrepes" data-prezzo="3.00" onchange="calcolaTotale()">
             <input type="number" id="qtaCrepes" class="quantita" value="1" min="1" onchange="calcolaTotale()">
             <span>Crepes</span>
             <span class="prezzo-tag">€ 3.00</span>
+        </div>
+        <div class="riga">
+            <input type="checkbox" id="checkGelato" data-prezzo="2.00" onchange="calcolaTotale()">
+            <input type="number" id="qtaGelato" class="quantita" value="1" min="1" onchange="calcolaTotale()">
+            <span>Gelato</span>
+            <span class="prezzo-tag">€ 2.00</span>
         </div>
     </div>
 
@@ -340,12 +358,15 @@
         if(document.getElementById('checkCaciocavallo').checked) caciocavalloList.push(`${document.getElementById('qtaCaciocavallo').value}x Caciocavallo`);
         
         if(document.getElementById('checkAcqua').checked) bevandeList.push(`${document.getElementById('qtaAcqua').value}x Acqua`);
-        if(document.getElementById('checkCoca').checked) bevandeList.push(`${document.getElementById('qtaCoca').value}x Coca Cola`);
+        if(document.getElementById('checkCoca').checked) bevandeList.push(`${document.getElementById('qtaCoca').value}x Pepsi in Lattina`);
         if(document.getElementById('checkBirra').checked) bevandeList.push(`${document.getElementById('qtaBirra').value}x Birra`);
-        if(document.getElementById('checkVino').checked) bevandeList.push(`${document.getElementById('qtaVino').value}x Vino`);
-        
+        if(document.getElementById('checkVino').checked) bevandeList.push(`${document.getElementById('qtaVino').value}x Bicchiere di Vino 25cl`);
+        if(document.getElementById('checkVinoBottiglia').checked) bevandeList.push(`${document.getElementById('qtaVinoBottiglia').value}x Bottiglia di Vino 1L`);
+        if(document.getElementById('checkCaffe').checked) bevandeList.push(`${document.getElementById('qtaCaffe').value}x Caffè`);
+
         if(document.getElementById('checkZuccheroFilato').checked) dolciList.push(`${document.getElementById('qtaZuccheroFilato').value}x Zucchero Filato`);
         if(document.getElementById('checkCrepes').checked) dolciList.push(`${document.getElementById('qtaCrepes').value}x Crepes`);
+        if(document.getElementById('checkGelato').checked) dolciList.push(`${document.getElementById('qtaGelato').value}x Gelato`);
 
         // Nel riepilogo ora vedrai ad esempio: "1x Salsiccia [Insalata], 1x Salsiccia [Melanzane, Maionese]"
         let riepilogo = [paniniList.join(', '), braceList.join(', '), caciocavalloList.join(', '), bevandeList.join(', '), dolciList.join(', ')].filter(Boolean).join(' - ');
